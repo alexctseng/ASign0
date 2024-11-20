@@ -8,10 +8,12 @@ import Image from "next/image"
 import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from 'react-dropzone'
 import { FileWithPath } from 'react-dropzone';
+import { useRouter } from 'next/navigation'
 
 export function LandingPage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [file, setFile] = useState<File | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     // Set dark mode by default
@@ -24,8 +26,15 @@ export function LandingPage() {
   }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFile(acceptedFiles[0])
-  }, [])
+    const file = acceptedFiles[0]
+    setFile(file)
+    
+    // Create a URL for the PDF
+    const objectUrl = URL.createObjectURL(file)
+    
+    // Navigate to the PDF viewer with the URL
+    router.push(`/pdf-viewer?url=${encodeURIComponent(objectUrl)}`)
+  }, [router])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -112,7 +121,15 @@ export function LandingPage() {
                             <p className="text-lg font-light">{file.name}</p>
                             <p className="text-sm text-muted-foreground">Ready to sign</p>
                           </div>
-                          <Button className="mt-4">
+                          <Button 
+                            className="mt-4" 
+                            onClick={() => {
+                              if (file) {
+                                const objectUrl = URL.createObjectURL(file)
+                                router.push(`/pdf-viewer?url=${encodeURIComponent(objectUrl)}`)
+                              }
+                            }}
+                          >
                             Start Signing
                           </Button>
                         </>
