@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { PDFToolbar } from '@/components/pdf/toolbar'
 import { SignaturePad } from '@/components/pdf/signature-pad'
+import { ResizableSignature } from '@/components/pdf/resizable-signature'
 
 // Define types for our annotations
 interface Annotation {
@@ -15,6 +16,8 @@ interface Annotation {
   x: number
   y: number
   content: string
+  width?: number
+  height?: number
 }
 
 export default function PDFViewer() {
@@ -24,6 +27,7 @@ export default function PDFViewer() {
   const [showSignaturePad, setShowSignaturePad] = useState(false)
   const [annotations, setAnnotations] = useState<Annotation[]>([])
   const [scale, setScale] = useState(1)
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null)
   
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -48,13 +52,17 @@ export default function PDFViewer() {
   }
 
   const handleSignatureSave = (signatureData: string) => {
+    const newId = crypto.randomUUID()
     setAnnotations(prev => [...prev, {
-      id: crypto.randomUUID(),
+      id: newId,
       type: 'signature',
-      x: 0,
-      y: 0,
-      content: signatureData
+      x: 100,
+      y: 100,
+      content: signatureData,
+      width: 200,
+      height: 100
     }])
+    setSelectedAnnotation(newId)
     setShowSignaturePad(false)
   }
 
@@ -84,38 +92,61 @@ export default function PDFViewer() {
 
         <div 
           ref={containerRef}
-          className="w-full h-[calc(100vh-180px)] relative"
-          style={{ transform: `scale(${scale})` }}
+          className="w-full h-[calc(100vh-180px)] relative bg-white"
+          onClick={() => setSelectedAnnotation(null)}
         >
           {pdfUrl && (
             <iframe
               src={`${pdfUrl}#toolbar=0`}
-              className="w-full h-full border rounded-lg"
+              className="w-full h-full border rounded-lg pointer-events-none"
               title="PDF Viewer"
             />
           )}
           
-          {/* Render annotations */}
-          {annotations.map(annotation => (
-            <div
-              key={annotation.id}
-              style={{
-                position: 'absolute',
-                left: annotation.x,
-                top: annotation.y,
-                pointerEvents: currentTool ? 'none' : 'all',
-                cursor: 'move'
-              }}
-            >
-              {annotation.type === 'signature' && (
-                <img 
-                  src={annotation.content} 
-                  alt="Signature"
-                  className="max-w-[200px]"
-                />
-              )}
-            </div>
-          ))}
+          <div className="absolute inset-0">
+            {annotations.map((annotation) => (
+              <div
+                key={annotation.id}
+                style={{
+                  position: 'absolute',
+                  left: annotation.x,
+                  top: annotation.y,
+                  zIndex: selectedAnnotation === annotation.id ? 50 : 40,
+                }}
+              >
+                {annotation.type === 'signature' && (
+                  <ResizableSignature
+                    content={annotation.content}
+                    initialWidth={annotation.width}
+                    initialHeight={annotation.height}
+                    isSelected={selectedAnnotation === annotation.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedAnnotation(annotation.id)
+                    }}
+                    onResize={(width, height) => {
+                      setAnnotations(prev => prev.map(a => 
+                        a.id === annotation.id 
+                          ? { ...a, width, height }
+                          : a
+                      ))
+                    }}
+                    onMove={(deltaX, deltaY) => {
+                      setAnnotations(prev => prev.map(a => 
+                        a.id === annotation.id 
+                          ? { 
+                              ...a, 
+                              x: a.x + deltaX,
+                              y: a.y + deltaY
+                            }
+                          : a
+                      ))
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
