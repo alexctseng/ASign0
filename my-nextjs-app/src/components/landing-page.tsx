@@ -7,10 +7,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from 'react-dropzone'
+import { FileWithPath } from 'react-dropzone';
 
 export function LandingPage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState<File | null>(null)
 
   useEffect(() => {
     // Set dark mode by default
@@ -22,7 +23,7 @@ export function LandingPage() {
     document.documentElement.classList.toggle('dark')
   }
 
-  const onDrop = useCallback((acceptedFiles) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
     setFile(acceptedFiles[0])
   }, [])
 
