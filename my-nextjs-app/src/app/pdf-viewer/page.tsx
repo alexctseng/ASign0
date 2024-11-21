@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Copy, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { PDFToolbar } from '@/components/pdf/toolbar'
 import { SignaturePad } from '@/components/pdf/signature-pad'
@@ -73,6 +73,20 @@ export default function PDFViewer() {
     setAnnotations(prev => prev.filter(annotation => annotation.id !== id))
     setSelectedAnnotation(null)
   }
+
+  const handleDuplicateAnnotation = (id: string) => {
+    const annotationToDuplicate = annotations.find(a => a.id === id);
+    if (annotationToDuplicate) {
+      const newAnnotation = {
+        ...annotationToDuplicate,
+        id: crypto.randomUUID(),
+        x: annotationToDuplicate.x + 20,
+        y: annotationToDuplicate.y + 20
+      };
+      setAnnotations(prev => [...prev, newAnnotation]);
+      setSelectedAnnotation(newAnnotation.id);
+    }
+  };
 
   return (
     <div className="min-h-screen p-4">
@@ -148,6 +162,7 @@ export default function PDFViewer() {
                       ))
                     }}
                     onDelete={() => handleDeleteAnnotation(annotation.id)}
+                    onDuplicate={() => handleDuplicateAnnotation(annotation.id)}
                   />
                 )}
               </div>

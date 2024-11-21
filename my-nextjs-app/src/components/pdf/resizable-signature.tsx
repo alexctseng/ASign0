@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, MoreVertical, Trash2 } from 'lucide-react'
+import { X, MoreVertical, Trash2, Copy, Square } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ interface ResizableSignatureProps {
   isSelected?: boolean
   onClick?: (e: React.MouseEvent) => void
   onDelete?: () => void
+  onDuplicate?: () => void
 }
 
 export function ResizableSignature({
@@ -28,7 +29,8 @@ export function ResizableSignature({
   onMove,
   isSelected = false,
   onClick,
-  onDelete
+  onDelete,
+  onDuplicate
 }: ResizableSignatureProps) {
   const [width, setWidth] = useState(initialWidth)
   const [height, setHeight] = useState(initialHeight)
@@ -153,35 +155,34 @@ export function ResizableSignature({
       {isSelected && (
         <>
           <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none" />
-          <div className="absolute top-0 right-0 transform translate-y-[-100%]">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="w-6 h-6 bg-white hover:bg-gray-50 rounded-sm flex items-center justify-center shadow-sm border border-gray-200 transition-colors"
-                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                >
-                  <MoreVertical className="w-3 h-3 text-gray-600" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end"
-                sideOffset={5}
-                alignOffset={-5}
-                className="bg-white shadow-lg border border-gray-200 rounded-sm py-1 w-[100px]"
-                style={{ position: 'absolute', top: '-40px' }}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 transform -translate-y-[100%]">
+            <div className="bg-white shadow-md rounded-lg py-1.5 px-2 flex items-center gap-2">
+              <button
+                className="flex items-center px-3 py-1.5 hover:bg-gray-50 rounded-md transition-colors"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  onDuplicate?.();
+                }}
               >
-                <DropdownMenuItem
-                  onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation()
-                    onDelete?.()
-                  }}
-                  className="flex items-center px-3 py-1 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
-                >
-                  <Trash2 className="w-3 h-3 text-gray-600 mr-2" />
-                  <span className="text-xs text-gray-600">Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <span className="text-gray-600 text-sm whitespace-nowrap flex items-center gap-2">
+                  <Square className="w-4 h-4" />
+                  Duplicate
+                </span>
+              </button>
+              <div className="w-px h-5 bg-gray-200" />
+              <button
+                className="flex items-center px-3 py-1.5 hover:bg-gray-50 rounded-md transition-colors"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  onDelete?.();
+                }}
+              >
+                <span className="text-gray-600 text-sm whitespace-nowrap flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </span>
+              </button>
+            </div>
           </div>
           {['nw', 'ne', 'se', 'sw'].map((corner) => (
             <div
