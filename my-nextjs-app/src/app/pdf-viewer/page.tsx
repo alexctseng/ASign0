@@ -69,6 +69,11 @@ export default function PDFViewer() {
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 2))
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5))
 
+  const handleDeleteAnnotation = (id: string) => {
+    setAnnotations(prev => prev.filter(annotation => annotation.id !== id))
+    setSelectedAnnotation(null)
+  }
+
   return (
     <div className="min-h-screen p-4">
       <div className="flex flex-col gap-4">
@@ -142,6 +147,7 @@ export default function PDFViewer() {
                           : a
                       ))
                     }}
+                    onDelete={() => handleDeleteAnnotation(annotation.id)}
                   />
                 )}
               </div>

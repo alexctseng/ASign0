@@ -1,6 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { X, MoreVertical, Trash2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface ResizableSignatureProps {
   content: string
@@ -10,6 +17,7 @@ interface ResizableSignatureProps {
   onMove?: (deltaX: number, deltaY: number) => void
   isSelected?: boolean
   onClick?: (e: React.MouseEvent) => void
+  onDelete?: () => void
 }
 
 export function ResizableSignature({
@@ -19,7 +27,8 @@ export function ResizableSignature({
   onResize,
   onMove,
   isSelected = false,
-  onClick
+  onClick,
+  onDelete
 }: ResizableSignatureProps) {
   const [width, setWidth] = useState(initialWidth)
   const [height, setHeight] = useState(initialHeight)
@@ -144,6 +153,36 @@ export function ResizableSignature({
       {isSelected && (
         <>
           <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none" />
+          <div className="absolute top-0 right-0 transform translate-y-[-100%]">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="w-6 h-6 bg-white hover:bg-gray-50 rounded-sm flex items-center justify-center shadow-sm border border-gray-200 transition-colors"
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                >
+                  <MoreVertical className="w-3 h-3 text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end"
+                sideOffset={5}
+                alignOffset={-5}
+                className="bg-white shadow-lg border border-gray-200 rounded-sm py-1 w-[100px]"
+                style={{ position: 'absolute', top: '-40px' }}
+              >
+                <DropdownMenuItem
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation()
+                    onDelete?.()
+                  }}
+                  className="flex items-center px-3 py-1 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3 text-gray-600 mr-2" />
+                  <span className="text-xs text-gray-600">Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           {['nw', 'ne', 'se', 'sw'].map((corner) => (
             <div
               key={corner}
