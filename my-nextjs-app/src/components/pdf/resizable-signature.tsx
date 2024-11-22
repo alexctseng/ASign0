@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { X, MoreVertical, Trash2, Copy, Square } from 'lucide-react'
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ interface ResizableSignatureProps {
   onClick?: (e: React.MouseEvent) => void
   onDelete?: () => void
   onDuplicate?: () => void
+  style?: React.CSSProperties
 }
 
 export function ResizableSignature({
@@ -30,8 +31,10 @@ export function ResizableSignature({
   isSelected = false,
   onClick,
   onDelete,
-  onDuplicate
+  onDuplicate,
+  style
 }: ResizableSignatureProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(initialWidth)
   const [height, setHeight] = useState(initialHeight)
   const [isResizing, setIsResizing] = useState(false)
@@ -101,9 +104,10 @@ export function ResizableSignature({
     }
   }
 
-  const handleDragMove = (e: MouseEvent) => {
-    if (!isDragging) return
+  const handleDragMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !containerRef.current) return
     
+    const rect = containerRef.current.getBoundingClientRect()
     const deltaX = e.clientX - startPos.current.x
     const deltaY = e.clientY - startPos.current.y
     
@@ -115,7 +119,7 @@ export function ResizableSignature({
       width,
       height
     }
-  }
+  }, [isDragging, onMove, width, height])
 
   const handleDragEnd = () => {
     setIsDragging(false)
@@ -140,8 +144,13 @@ export function ResizableSignature({
 
   return (
     <div 
-      className={`relative cursor-move ${isSelected ? 'z-50' : 'z-40'}`}
-      style={{ width, height }}
+      ref={containerRef}
+      style={{
+        ...style,
+        width: `${width}px`,
+        height: `${height}px`,
+        cursor: isDragging ? 'grabbing' : 'grab',
+      }}
       onClick={onClick}
       onMouseDown={handleDragStart}
     >
